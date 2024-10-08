@@ -7,6 +7,8 @@ import * as joi from 'joi';
 interface EnvVars{
     PORT: number;
     DATABASE_URL: string;
+
+    // NATS_SERVERS: string[];
 }
 
 // El puerto tiene que ser obligatorio
@@ -15,10 +17,17 @@ const envSchema = joi.object({
 
     PORT: joi.number().required(),
     DATABASE_URL: joi.string().required(),
+
+    // NATS_SERVERS: joi.array().items( joi.string() ).required(),
 })
 .unknown(true);
 
-// desestructura esas variables del .env
+// desestructura esas variables del .env para hacer un array del NATS_SERVERS
+// const { error, value } = envSchema.validate( {
+//     ...process.env,
+//     NATS_SERVERS: process.env.NATS_SERVERS?.split(',')
+// });
+
 const { error, value } = envSchema.validate( process.env );
 
 //creacion del mensaje de error
@@ -33,5 +42,7 @@ const envVars: EnvVars = value;
 export const envs ={
     port: envVars.PORT,
     databaseUrl: envVars.DATABASE_URL,
+
+    // natsServers: envVars.NATS_SERVERS,
 
 }

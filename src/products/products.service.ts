@@ -1,11 +1,13 @@
-import { Injectable, Logger, NotFoundException, OnModuleInit } from '@nestjs/common';
+import { HttpStatus, Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
 import { PrismaClient } from '@prisma/client';
 import { PaginationDTO } from 'src/common';
+import { RpcException } from '@nestjs/microservices';
 
 @Injectable()
 export class ProductsService extends PrismaClient implements OnModuleInit {
+  
 
   private readonly logger = new Logger( 'ProductService');
   
@@ -58,7 +60,10 @@ export class ProductsService extends PrismaClient implements OnModuleInit {
       }) 
 
       if(!product){
-        throw new NotFoundException(`Product with id: #${ id } not found`)
+        throw new RpcException({
+          message: `Product with id: #${ id } not found`,
+          status: HttpStatus.BAD_REQUEST
+        });
       }
 
       return product;
@@ -100,6 +105,34 @@ return product;
     // return this.product.delete({
     //   where: { id } 
     // });
+
+  }
+
+  async validateProducts(ids: number[]) {
+    
+    ids = Array.from( new Set(ids) ); // Estructura de datos en JS sin duplicados, elimina los duplicados del array
+
+    
+    //Busca cada elemento del array en la db, regresara solo los id que existen
+    const products = await this.product.findMany({
+      where: {
+        id: {
+          in: ids
+        }
+      }
+    });
+
+    //compara el arreglo ids que llega contra el de products, si no tienen la misma longitud, manda error, 
+    //de lo contrario manda los productos
+    
+    if(products.length !== ids.length){
+      throw new RpcException({
+        message: 'Some products were not found',
+        status: HttpStatus.BAD_REQUEST,
+      });
+    }
+
+    return products;
 
   }
 }
