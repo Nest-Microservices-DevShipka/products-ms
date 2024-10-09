@@ -3,23 +3,24 @@ import { AppModule } from './app.module';
 import { Logger, ValidationPipe } from '@nestjs/common';
 import { envs } from './config';
 import { MicroserviceOptions, Transport } from '@nestjs/microservices';
-import { env } from 'process';
+
 
 async function bootstrap() {
 
-const logger = new Logger('Main');
+  const logger = new Logger('Main');
 
-// console.log(envs.natsServers);
+  console.log(envs.natsServers);
 
-  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule, 
+  const app = await NestFactory.createMicroservice<MicroserviceOptions>(AppModule,
     {
-      transport: Transport.TCP,
+      transport: Transport.NATS,
       options: {
-        port: envs.port
+        // port: envs.port,
+        servers: envs.natsServers,
       }
     }
   );
-  
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -28,6 +29,6 @@ const logger = new Logger('Main');
   );
 
   await app.listen();
-  logger.log(`Products Microservice running in port ${ envs.port}`);
+  logger.log(`Products Microservice running in port ${envs.port}`);
 }
 bootstrap();
