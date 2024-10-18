@@ -16,7 +16,7 @@ export class ProductsController {
   }
 
   // @Get()
-  @MessagePattern({ cmd: 'find_all_product '})
+  @MessagePattern({ cmd: 'find_all_product'})
   findAll( @Payload() paginationDTO: PaginationDTO) {
     
     
